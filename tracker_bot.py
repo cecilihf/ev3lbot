@@ -32,6 +32,7 @@ def run_bot():
         while True:
             right_motor.run_forever(speed_sp=200)
             left_motor.run_forever(speed_sp=200)
+            rc.process()
             try:
                 distance = ultrasonic.distance_centimeters
                 print(distance)
@@ -54,13 +55,14 @@ def run_bot():
         stop_and_exit()
         
     
-def stop_and_exit():
+def stop_and_exit(pos):
     print("stop me!!")
     right_motor.stop()
     left_motor.stop()
-    #exit(1);
+    exit(1);
     
 
 
 rc.on_red_up = stop_and_exit
 run_bot()
+
