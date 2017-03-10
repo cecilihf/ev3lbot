@@ -16,7 +16,7 @@ to it.
 
 Run tracker_bot.py to let your Robot start roaming around. For now it will
 only move around peacefully and try to avoid crashing into walls, but new
-features will be added continuously throuhout ev3lbot's lifetime. 
+features will be added continuously throughout ev3lbot's lifetime. 
 
 Should the robot be refusing to stop in an emergency, you can run
 stop_bot.py to safely bring it to a halt.
