@@ -3,7 +3,15 @@
 
 import rpyc
 
-conn = rpyc.classic.connect('10.59.2.16') # host name or IP address of the EV3
+from ssl import CERT_NONE
+
+#conn = rpyc.classic.connect('10.59.2.16') # host name or IP address of the EV3
+
+conn = rpyc.classic.connect('127.0.0.1', port=12345)
+
+#conn = rpyc.ssl_connect('10.59.2.16', port=18821, keyfile="/home/cecilie/scripts/ev3/client.key",
+#                        certfile="/home/cecilie/scripts/ev3/client.crt", ca_certs="/home/cecilie/scripts/ev3/ca.crt")
+
 ev3 = conn.modules['ev3dev.ev3']      # import ev3dev.ev3 remotely
 
 right_motor = ev3.LargeMotor('outA')
@@ -43,14 +51,16 @@ def run_bot():
                 left_motor.polarity = 'normal'
     except Exception as e:
         print(e)
-        stop_motors()
+        stop_and_exit()
         
     
-def stop_motors():
+def stop_and_exit():
+    print("stop me!!")
     right_motor.stop()
     left_motor.stop()
+    #exit(1);
     
 
 
-rc.on_red_up = stop_motors()
+rc.on_red_up = stop_and_exit
 run_bot()
