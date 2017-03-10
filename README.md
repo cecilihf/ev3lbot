@@ -9,7 +9,9 @@ own personal little sister.
 
 # Getting started
 
-To get started controlling your ev3lbot, install ev3dev on it, then RPyC and
+To get started controlling your ev3lbot, install
+[ev3dev](http://www.ev3dev.org/) on it, then
+[RPyC](http://python-ev3dev.readthedocs.io/en/latest/rpyc.html) and
 start an RPyC server. For security reasons we recommend letting the servers
 only accept connections over localhost, and then use an SSH tunnel to talk
 to it.
