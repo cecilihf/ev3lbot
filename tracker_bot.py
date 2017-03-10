@@ -25,36 +25,95 @@ ev3.Sound.set_volume(100)
 ultrasonic = ev3.UltrasonicSensor()
 rc = ev3.RemoteControl()
 ir = ev3.InfraredSensor()
-
+touch = ev3.TouchSensor()
+gyro = ev3.GyroSensor()
+gyro.mode = 'GYRO-ANG'
 
 def run_bot():
     try:
         while True:
+            left_motor.polarity = 'normal'
+            right_motor.polarity = 'normal'
+
             right_motor.run_forever(speed_sp=200)
             left_motor.run_forever(speed_sp=200)
             rc.process()
+            crash = touch.is_pressed
+            if crash:
+                back_up()
+                turn_around()
+                
             try:
                 distance = ultrasonic.distance_centimeters
                 print(distance)
+                
             except:
                 distance = ultrasonic.distance_centimeters
                 print("got an exception, tried to get the distance again")
                 print(distance)
             if distance <= 18:
-                right_motor.stop()
-                left_motor.stop()
-                right_motor.run_timed(time_sp=1000, speed_sp=600)
+                angle = gyro.angle
+                print("starting at angle %d" % angle)
+                turn_around()
+                angle_moved = gyro.angle
+                print("rotated %d degrees" % angle)
                 
-                left_motor.polarity = 'inversed'
-                left_motor.run_timed(time_sp=1000, speed_sp=600)
-                right_motor.wait_while('running')
-                left_motor.wait_while('running')
-                left_motor.polarity = 'normal'
     except Exception as e:
         print(e)
         stop_and_exit()
         
+        
+def turn_around():
+    angle_in = gyro.angle
+    print("angle in: %d" % angle_in)
+    desired_angle_move = -30
+    angle_to_stop_at = angle_in - desired_angle_move
+    print("angle to stop at: %d" % angle_to_stop_at)
+    right_motor.stop()
+    left_motor.stop()
     
+    left_motor.polarity = 'inversed'
+    
+    #right_motor.run_forever(speed_sp=400)
+    #left_motor.run_forever(speed_sp=400)
+    total_angle_moved = 0
+    while True:
+        right_motor.run_timed(time_sp=1000, speed_sp=100)
+        left_motor.run_timed(time_sp=1000, speed_sp=100)
+        right_motor.wait_while('running')
+        left_motor.wait_while('running')
+    
+    
+        angle_moved = gyro.angle
+        total_angle_moved += angle_moved
+        print("moved %d degrees" % angle_moved)
+        print("moved %d degrees total" % total_angle_moved)
+        if total_angle_moved <= desired_angle_move:
+             right_motor.stop()
+             left_motor.stop()
+             break       
+    
+    #right_motor.wait_while('running')
+    #left_motor.wait_while('running')
+    left_motor.polarity = 'normal'
+
+def back_up():
+    right_motor.stop()
+    left_motor.stop()
+    
+    right_motor.polarity = 'inversed'
+    left_motor.polarity = 'inversed'
+    
+    right_motor.run_timed(time_sp=2000, speed_sp=200)
+    left_motor.run_timed(time_sp=2000, speed_sp=200)
+    
+    right_motor.wait_while('running')
+    left_motor.wait_while('running')
+    
+    left_motor.polarity = 'normal'
+    right_motor.polarity = 'normal'
+
+
 def stop_and_exit(pos):
     print("stop me!!")
     right_motor.stop()
@@ -65,4 +124,8 @@ def stop_and_exit(pos):
 
 rc.on_red_up = stop_and_exit
 run_bot()
+
+#while True:
+#    print ("moving angle: %d" % gyro.angle)
+
 
