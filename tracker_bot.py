@@ -2,8 +2,8 @@
 
 
 import rpyc
+from time import sleep
 
-from ssl import CERT_NONE
 
 #conn = rpyc.classic.connect('10.59.2.16') # host name or IP address of the EV3
 
@@ -13,6 +13,8 @@ conn = rpyc.classic.connect('127.0.0.1', port=12345)
 #                        certfile="/home/cecilie/scripts/ev3/client.crt", ca_certs="/home/cecilie/scripts/ev3/ca.crt")
 
 ev3 = conn.modules['ev3dev.ev3']      # import ev3dev.ev3 remotely
+
+state_stopped = False
 
 right_motor = ev3.LargeMotor('outA')
 left_motor = ev3.LargeMotor('outD')
@@ -29,9 +31,15 @@ touch = ev3.TouchSensor()
 gyro = ev3.GyroSensor()
 gyro.mode = 'GYRO-ANG'
 
+
+
 def run_bot():
     try:
         while True:
+            print (state_stopped)
+            if state_stopped:
+                print("Should be stopped, breaking out")
+                break
             left_motor.polarity = 'normal'
             right_motor.polarity = 'normal'
 
@@ -60,7 +68,6 @@ def run_bot():
                 
     except Exception as e:
         print(e)
-        stop_and_exit()
         
         
 def turn_around():
@@ -78,6 +85,11 @@ def turn_around():
     #left_motor.run_forever(speed_sp=400)
     total_angle_moved = 0
     while True:
+        print (state_stopped)
+        if state_stopped:
+            print ("Should be stopped. Breaking out")
+            break
+        rc.process()
         right_motor.run_timed(time_sp=1000, speed_sp=100)
         left_motor.run_timed(time_sp=1000, speed_sp=100)
         right_motor.wait_while('running')
@@ -114,16 +126,43 @@ def back_up():
     right_motor.polarity = 'normal'
 
 
-def stop_and_exit(pos):
+def stop(self):
     print("stop me!!")
+    global state_stopped
+    state_stopped = True
     right_motor.stop()
     left_motor.stop()
-    exit(1);
     
+    
+def start(self):
+    print("start me!!")
+    global state_stopped
+    state_stopped = False
+    run_bot()
+    
+    
+def idle():
+    print("idling")
+    while True:
+        rc.process()
+        sleep(0.01)
+        
+def turn_around_button(self):
+    global state_stopped
+    state_stopped = False
+    turn_around()
+    state_stopped = True
 
+def back_up_button(self):
+    back_up()
 
-rc.on_red_up = stop_and_exit
+rc.on_red_up = stop
+rc.on_blue_up = start
+rc.on_red_down = turn_around_button
+rc.on_blue_down = back_up_button
 run_bot()
+idle()
+
 
 #while True:
 #    print ("moving angle: %d" % gyro.angle)
